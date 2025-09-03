@@ -1,0 +1,8 @@
+.oc-mirror.log
+collect_ocp.log
+downloads/*
+!downloads/install.sh
+oc-mirror/content
+oc-mirror/.cache 
+oc-mirror/*.log
+oc-mirror/logs

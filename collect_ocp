@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#==============================================================================
+# Simple OpenShift Collection Script
+#==============================================================================
+# Downloads OpenShift tools and installs to PATH
+# Usage: Edit OPENSHIFT_VERSION variable below, then run: ./collect_ocp
+#==============================================================================
+
+set -e
+
+# Set the OpenShift version to download
+# Use "stable" for latest stable, or specific version like "4.19.2"
+OPENSHIFT_VERSION="4.19.2"
+BASE_URL="https://mirror.openshift.com/pub/openshift-v4/x86_64/clients"
+
+echo "=== Downloading OpenShift Tools (version: $OPENSHIFT_VERSION) ==="
+
+# Create directories
+mkdir -p downloads downloads/mirror-registry
+
+# Download standard tools (always from stable)
+echo "Downloading oc-mirror..."
+curl -L -o downloads/oc-mirror.tar.gz "$BASE_URL/ocp/stable/oc-mirror.tar.gz"
+
+echo "Downloading openshift-client..."
+curl -L -o downloads/openshift-client-linux.tar.gz "$BASE_URL/ocp/stable/openshift-client-linux.tar.gz" 
+
+echo "Downloading butane..."
+curl -L -o downloads/butane "$BASE_URL/butane/latest/butane-amd64"
+
+echo "Downloading mirror-registry..."
+curl -L -o downloads/mirror-registry-amd64.tar.gz "https://mirror.openshift.com/pub/cgw/mirror-registry/latest/mirror-registry-amd64.tar.gz"
+
+# Download openshift-install with version-aware naming
+if [[ "$OPENSHIFT_VERSION" == "stable" ]]; then
+    echo "Downloading openshift-install (stable)..."
+    curl -L -o downloads/openshift-install-linux-stable.tar.gz "$BASE_URL/ocp/stable/openshift-install-linux.tar.gz"
+    INSTALL_ARCHIVE="openshift-install-linux-stable.tar.gz"
+else
+    echo "Downloading openshift-install (version: $OPENSHIFT_VERSION)..."
+    curl -L -o downloads/openshift-install-linux-$OPENSHIFT_VERSION.tar.gz "$BASE_URL/ocp/$OPENSHIFT_VERSION/openshift-install-linux.tar.gz"
+    INSTALL_ARCHIVE="openshift-install-linux-$OPENSHIFT_VERSION.tar.gz"
+fi
+
+echo "=== Extracting Archives ==="
+
+# Extract everything
+tar -xf downloads/mirror-registry-amd64.tar.gz -C downloads/mirror-registry/
+tar -xf downloads/oc-mirror.tar.gz -C downloads/
+tar -xf downloads/openshift-client-linux.tar.gz -C downloads/
+tar -xf downloads/$INSTALL_ARCHIVE -C downloads/
+
+echo "=== Installing to PATH (Connected System) ==="
+
+# Run the install script to install tools locally
+cd downloads && ./install.sh && cd ..
+echo ""
+echo "Downloads saved in: downloads/"
+echo "Mirror registry in: downloads/mirror-registry/"
+echo "Install script: downloads/install.sh"
+echo ""
+echo "💡 For disconnected systems:"
+echo "   1. Copy the entire 'downloads/' directory to your air-gapped environment"
+echo "   2. cd downloads && ./install.sh"

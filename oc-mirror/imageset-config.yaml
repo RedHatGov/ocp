@@ -1,0 +1,18 @@
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+archiveSize: 8
+mirror:
+  platform:
+    channels:
+    - name: stable-4.19
+      minVersion: 4.19.2
+      maxVersion: 4.19.2 
+    graph: true
+  operators:
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.19
+      packages:
+        - name: web-terminal
+        #- name: cluster-logging
+        #- name: compliance-operator
+  additionalImages: 
+    - name: registry.redhat.io/ubi9/ubi:latest
