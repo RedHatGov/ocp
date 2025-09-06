@@ -5,6 +5,7 @@ mirror:
   platform:
     channels:
     - name: stable-4.19
+      shortestPath: true
       minVersion: 4.19.2
       maxVersion: 4.19.2 
     graph: true
@@ -14,5 +15,8 @@ mirror:
         - name: web-terminal
         #- name: cluster-logging
         #- name: compliance-operator
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.18
+      packages:
+        - name: web-terminal
   additionalImages: 
     - name: registry.redhat.io/ubi9/ubi:latest

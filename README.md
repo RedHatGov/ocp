@@ -96,11 +96,10 @@ cp imageset-config.yaml content/imageset-config-$(date +%F).yaml
 # Excluding the ocp/oc-mirror/content/working-dir
 cd ~
 
-rsync -av --progress \ 
-  -e "ssh -i ~/.ssh/kevin" \
+rsync -av --progress -e "ssh -i ~/.ssh/aws.pem" \
   --exclude 'oc-mirror/content/working-dir' \
   ./ocp/ \
-  ec2-user@registry.sandbox762.opentlc.com:~/ocp/
+  ec2-user@registry.sandbox3296.opentlc.com:~/ocp/
 ```
 
 ### **Step 4: Registry Host Setup**

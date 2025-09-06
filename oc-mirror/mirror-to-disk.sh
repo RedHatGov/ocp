@@ -1,8 +1,12 @@
 #!/bin/bash
-# Mirror content from registry to local disk storage
-# Creates content/ directory with all images and metadata
+# Mirror content from registry to disk (m2d)
+#
+# This will download all content based on the imageset-config.yaml to the local .cache directory
+# It will also create tar file(s) in the content directory
+#   Note: The tar files are designed to be disposable
+#          To genereate new tars run again and add the since cmd based on what has already been loaded into the disconnected registry
+#          ls content/working-dir/.history 
 
-# Create content directory structure and cache
 oc-mirror -c imageset-config.yaml \
     file://content \
     --v2 \
