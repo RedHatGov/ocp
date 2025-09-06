@@ -7,5 +7,5 @@ oc-mirror -c imageset-config.yaml \
     file://content \
     --v2 \
     --cache-dir ~/.cache \
-    --since 2025-09-01
+#    --since 2025-09-01
 
