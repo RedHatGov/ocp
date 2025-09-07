@@ -20,7 +20,7 @@ Welcome to the OpenShift disconnected installation guide! This guide will take y
 - ✅ Always use the latest oc-mirror v2 (regardless of the OpenShift Version)
 - ✅ Never run as ROOT user
 - ✅ Bastion host must be persistent (maintain `.cache` and `.history` directory)
-- ✅ Secure transfer method between hosts (SCP/rsync,blueray)
+- ✅ Secure transfer method between hosts (SCP/rsync,Blu-ray)
 - ✅ Use fully qualified hostnames
 - ✅ oc-mirror shells are supplied to ensure commands are documented and tracked in the user environment
 
@@ -57,7 +57,7 @@ sudo hostnamectl hostname bastion.sandboxXXX.opentlc.com
 sudo dnf install -y podman git
 
 # Clone this repository
-git clone git@github.com:RedHatGov/ocp.git & cd ocp
+git clone git@github.com:RedHatGov/ocp.git && cd ocp
 
 # Collect OpenShift tools (includes oc-mirror v2)
 ./collect_ocp
@@ -68,6 +68,8 @@ mkdir -p ~/.config/containers
 # Create and Paste your pull secret content into this auth.json file
 vi ~/.config/containers/auth.json
 ```
+
+> 📝 **Critical:** For this guide, the collect_ocp pulls 4.19.2 version of openshift-install. Modify it based on the version of OpenShift that you want to deploy
 
 ### **Step 2: m2d Flow - Mirror to Disk**
 
@@ -118,7 +120,7 @@ sudo hostnamectl hostname registry.sandboxXXX.opentlc.com
 sudo dnf install -y podman git
 
 # Install ocp binaries into your path
-cd ocp/downloads/ & ./install.sh
+cd ocp/downloads/ && ./install.sh
 
 # Create container config directory
 mkdir -p ~/.config/containers
@@ -246,7 +248,7 @@ openshift-install create install-config
 
 **Add Image Mirror Sources:**
 
-Edit the installation configuration to include mirror information:
+Edit the installation configuration to include mirror information
 ```bash
 # Edit the configuration
 vi install-config.yaml
@@ -265,7 +267,7 @@ imageDigestSources:
 
 **Add Additional Trust Bundle:**
 
-Include the registry certificate in the installation configuration:
+Include the registry certificate in the installation configuration
 ```bash
 # Get the registry certificate
 cat ~/quay-install/quay-rootCA/rootCA.pem
@@ -291,19 +293,10 @@ cp install-config.yaml install-config.yaml.backup
 # Deploy the cluster with debug logging
 openshift-install create cluster --log-level debug
 ```
-**Monitor Installation Progress:**
-```bash
-# Watch installation logs (in another terminal)
-tail -f .openshift_install.log
-
-# Monitor installation state
-openshift-install wait-for bootstrap-complete
-openshift-install wait-for install-complete
-```
-**Set up local access to your new cluster:**
+**Set up local access to your new cluster: This can be done at any time during the install**
 ```bash
 # Set KUBECONFIG environment variable
-export KUBECONFIG=~/oc-mirror-hackathon/ocp/auth/kubeconfig
+export KUBECONFIG=~/ocp/cluster/ocp/auth/kubeconfig
 
 # Create kube config directory
 mkdir -p ~/.kube
@@ -317,15 +310,12 @@ oc whoami --show-console
 oc get nodes
 oc get co
 ```
-
-**Access the web console** using the URL and credentials provided.
-
-### 4. Apply Mirror Configuration Resources
+>**Access the web console** using the URL and credentials provided.
 
 **Apply IDMS and ITMS resources generated during mirroring:**
 ```bash
 # Navigate to mirror configuration directory
-cd ~/oc-mirror-hackathon/oc-mirror-master
+cd ~/ocp/oc-mirror
 
 # Apply all cluster resources
 oc apply -f content/working-dir/cluster-resources/
@@ -336,13 +326,11 @@ oc apply -f content/working-dir/cluster-resources/
 - **ITMS** (ImageTagMirrorSet): Maps tag-based image references to mirror registry  
 - **CatalogSource**: Defines operator catalog sources from mirror registry
 
-### 5. Configure Additional Cluster Trust
-
 **Create Certificate ConfigMap:**
 ```bash
 # Create ConfigMap with registry certificate
 oc create configmap registry-config \
-  --from-file=$(hostname)..8443=${HOME}/quay-install/quay-rootCA/rootCA.pem \
+  --from-file=$(hostname):8443=${HOME}/quay-install/quay-rootCA/rootCA.pem \
   -n openshift-config
 ```
 
@@ -354,9 +342,7 @@ oc patch image.config.openshift.io/cluster \
   --type=merge
 ```
 
-### 6. Disable Default Operator Sources
-
-**Configure OperatorHub for disconnected operation:**
+**Disable Default Operator Sources**
 ```bash
 # Disable all default operator sources
 oc patch OperatorHub cluster --type json \
@@ -365,12 +351,22 @@ oc patch OperatorHub cluster --type json \
 
 > ⚠️ **Important:** This prevents the cluster from attempting to pull operators from external registries.
 
+### 📖 **Step 7: [OpenShift Cluster Upgrade](docs/cluster-upgrade.md)**
 
+**📋 Validate your openshift-install client**
+
+```bash
+# Inspect the openshift-release image
+oc adm release info $HOSTNAME:8443/openshift/release-images:4.19.2-x86_64 | grep release
+
+# Inspect the release for the openshift-install client
+openshift-install version
+```
 
 
 
 TODO, deploy cluster
-      ,mirror new content
+      ,Cluster upgrade
       ,inspect the history
       ,delete old content in the registry
       ,draft the history and --since date. 

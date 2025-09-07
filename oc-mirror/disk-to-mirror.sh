@@ -1,5 +1,5 @@
 #!/bin/bash
-# Upload mirrored content to registry
+# Upload tar content to registry
 # Cache will be created fresh on this host - no cache transfer needed!
 
 oc-mirror -c imageset-config.yaml \

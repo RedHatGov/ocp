@@ -76,15 +76,6 @@ Configure inbound rule to allow access to mirror registry:
 ssh -i ~/.ssh/your-key.pem ec2-user@[BASTION-PUBLIC-IP]
 ```
 
-**⚙️ Initial System Setup (Bastion)**
-
-Once connected to your bastion host, perform initial configuration:
-
-```bash
-# Set the hostname (replace XXX with your sandbox number)
-sudo hostnamectl hostname bastion.sandboxXXX.opentlc.com
-```
-
 ### **Step 5: Registry Host Configuration**
 
 **🔒 Launch Registry EC2 Instance**
@@ -114,15 +105,6 @@ Create a second EC2 instance identical to the bastion host for registry operatio
 ```bash
 # Replace with your actual key file and IP address
 ssh -i ~/.ssh/your-key.pem ec2-user@[REGISTRY-PUBLIC-IP]
-```
-
-**⚙️ Initial System Setup (Registry)**
-
-Once connected to your registry host, perform initial configuration:
-
-```bash
-# Set the hostname (replace XXX with your sandbox number)
-sudo hostnamectl hostname registry.sandboxXXX.opentlc.com
 ```
 
 ### **Step 6: DNS Configuration**
