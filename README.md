@@ -22,6 +22,7 @@ Welcome to the OpenShift disconnected installation guide! This guide will take y
 - ✅ Bastion host must be persistent (maintain `.cache` and `.history` directory)
 - ✅ Secure transfer method between hosts (SCP/rsync,blueray)
 - ✅ Use fully qualified hostnames
+- ✅ oc-mirror shells are supplied to ensure commands are documented and tracked in the user environment
 
 ### **✅ Host Requirements**
 
@@ -101,6 +102,9 @@ rsync -av --progress -e "ssh -i ~/.ssh/aws.pem" \
   ./ocp/ \
   ec2-user@registry.sandbox3296.opentlc.com:~/ocp/
 ```
+> 📝 **Critical:** You do not need to transfer the .cache to your disconnected host
+
+> 📝 **Critical:** DO NOT overwrite your working-dir on your disconnected host
 
 ### **Step 4: Registry Host Setup**
 
@@ -172,12 +176,206 @@ podman login https://$(hostname):8443 \
 **📋 Load Archives into Registry**
 
 ```bash
-# On registry host - load mirrored content
-oc-mirror --v2 --from file://./mirror-archive docker://registry-host:8443
+# Inspect your imageset-config.yaml and the backup copy in /content.
+# They should be identical. This is the content that you will load into the registry
+# This will also create your custom catalog based on the operators in the imageset-config.yaml
+cd ../../oc-mirror
+cat imageset-config.yaml
 
-# Verify content loaded
-oc-mirror list --config imageset-config.yaml docker://registry-host:8443
+# Run disk-to-mirror operation
+./disk-to-mirror.sh
 ```
+**📋 Verify the disk-to-mirror process was successful**
+
+```bash
+# Inspect the oc-mirror log file
+cat content/working-dir/logs/oc-mirror.log
+
+# Inspect the cluster-resources
+ls content/working-dir/cluster-resources
+
+# Inspect registry content (if using Quay web interface)
+firefox https://$(hostname):8443
+```
+
+> 📝 **Critical:** Note the success of this action on your bastion node. The clean hygiene will ensure future success with this process.
+
+### **Step 6: Deploy OpenShift**
+
+**📋 Validate your openshift-install client**
+
+```bash
+# Inspect the openshift-release image
+oc adm release info $HOSTNAME:8443/openshift/release-images:4.19.2-x86_64 | grep release
+
+# Inspect the release for the openshift-install client
+openshift-install version
+```
+
+**📋 OpenShift Installation Configuration**
+
+```bash
+# Generate SSH key for cluster node access, take the defaults
+ssh-keygen -t ed25519 -C "openshift@$(hostname)"
+
+# Extract registry-specific authentication for install config
+# Format needed: {"auths": {"<MIRROR-REGISTRY>:8443": {"auth": "BASE64_CREDENTIALS"}}}
+jq -c --arg reg "$(hostname):8443" '
+  .auths[$reg].auth as $token
+  | {"auths": { ($reg): {"auth": $token} }}
+' ~/.config/containers/auth.json
+
+# Create install configuration
+mkdir ~/ocp/cluster/ocp 
+cd ~/ocp/cluster/ocp
+openshift-install create install-config 
+```
+**Provide Platform Information:**
+
+| Parameter | Example Value | Notes |
+|-----------|---------------|-------|
+| **SSH Public Key** | `~/.ssh/id_ed25519.pub` | Generated above |
+| **Platform** | AWS, Azure, GCP, vSphere, etc. | Your cloud/infrastructure provider |
+| **Platform Credentials** | Various | Specific to your cloud provider |
+| **Region/Location** | us-east-2, eastus, etc. | Provider-specific region |
+| **Base Domain** | sandbox762.opentlc.com | Your DNS domain for the cluster |
+| **Cluster Name** | ocp | Descriptive cluster name |
+| **Pull Secret** | Registry auth JSON | From your merged auth.json file |
+
+> 📋 **Platform-Specific Setup:** For detailed cloud-specific configuration, refer to the [OpenShift Installation Documentation](https://docs.openshift.com/container-platform/latest/installing/) for your specific platform.
+
+**Add Image Mirror Sources:**
+
+Edit the installation configuration to include mirror information:
+```bash
+# Edit the configuration
+vi install-config.yaml
+```
+
+**Add the imageDigestSources section:**
+```yaml
+imageDigestSources:
+  - mirrors:
+    - $(hostname):8443/openshift/release
+    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+  - mirrors:
+    - $(hostname):8443/openshift/release-images
+    source: quay.io/openshift-release-dev/ocp-release
+```
+
+**Add Additional Trust Bundle:**
+
+Include the registry certificate in the installation configuration:
+```bash
+# Get the registry certificate
+cat ~/quay-install/quay-rootCA/rootCA.pem
+
+# Add the certificate to install-config.yaml
+{ echo "additionalTrustBundle: |"; sed 's/^/  /' ~/quay-install/quay-rootCA/rootCA.pem; } >> install-config.yaml
+```
+
+**Example disconnected install-config additions**
+```bash
+# Inspect the example
+cat ../install-disconnected.example
+
+# Inspect the install-config
+cat install-config.yaml
+```
+
+**Install OpenShift**
+```bash
+# Create a backup of your config
+cp install-config.yaml install-config.yaml.backup
+
+# Deploy the cluster with debug logging
+openshift-install create cluster --log-level debug
+```
+**Monitor Installation Progress:**
+```bash
+# Watch installation logs (in another terminal)
+tail -f .openshift_install.log
+
+# Monitor installation state
+openshift-install wait-for bootstrap-complete
+openshift-install wait-for install-complete
+```
+**Set up local access to your new cluster:**
+```bash
+# Set KUBECONFIG environment variable
+export KUBECONFIG=~/oc-mirror-hackathon/ocp/auth/kubeconfig
+
+# Create kube config directory
+mkdir -p ~/.kube
+
+# Copy cluster config
+cp auth/kubeconfig ~/.kube/config
+
+# Verify cluster access
+oc whoami
+oc whoami --show-console
+oc get nodes
+oc get co
+```
+
+**Access the web console** using the URL and credentials provided.
+
+### 4. Apply Mirror Configuration Resources
+
+**Apply IDMS and ITMS resources generated during mirroring:**
+```bash
+# Navigate to mirror configuration directory
+cd ~/oc-mirror-hackathon/oc-mirror-master
+
+# Apply all cluster resources
+oc apply -f content/working-dir/cluster-resources/
+```
+
+**Applied Resources:**
+- **IDMS** (ImageDigestMirrorSet): Maps digest-based image references to mirror registry
+- **ITMS** (ImageTagMirrorSet): Maps tag-based image references to mirror registry  
+- **CatalogSource**: Defines operator catalog sources from mirror registry
+
+### 5. Configure Additional Cluster Trust
+
+**Create Certificate ConfigMap:**
+```bash
+# Create ConfigMap with registry certificate
+oc create configmap registry-config \
+  --from-file=$(hostname)..8443=${HOME}/quay-install/quay-rootCA/rootCA.pem \
+  -n openshift-config
+```
+
+**Apply Certificate to Cluster:**
+```bash
+# Patch cluster image configuration to trust the registry
+oc patch image.config.openshift.io/cluster \
+  --patch '{"spec":{"additionalTrustedCA":{"name":"registry-config"}}}' \
+  --type=merge
+```
+
+### 6. Disable Default Operator Sources
+
+**Configure OperatorHub for disconnected operation:**
+```bash
+# Disable all default operator sources
+oc patch OperatorHub cluster --type json \
+  -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+```
+
+> ⚠️ **Important:** This prevents the cluster from attempting to pull operators from external registries.
+
+
+
+
+
+TODO, deploy cluster
+      ,mirror new content
+      ,inspect the history
+      ,delete old content in the registry
+      ,draft the history and --since date. 
+
+
 
 ---
 
