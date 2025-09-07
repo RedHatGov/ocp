@@ -17,16 +17,17 @@ This comprehensive guide walks you through upgrading a disconnected OpenShift cl
   - 🆙 New versions of OpenShift
   - ➖ Removing operators
   - 🖼️ Adding and removing additional images
+- ✅ Always create a backup of your imageset-config.yaml
 - ✅ Always use the latest oc-mirror v2 (regardless of the OpenShift Version)
 - ✅ Never run as ROOT user
 - ✅ Bastion host must be persistent (maintain `.cache` and `.history` directory)
+
+### **📋 Step 1: Pre-Upgrade Planning (Registry Node)**
 
 **📖 Essential Reading:**
 - [OCP Cluster Upgrade Graph](https://access.redhat.com/labs/ocpupgradegraph/update_path/) - Plan your upgrade path
 - [OpenShift Updating Clusters](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html-single/updating_clusters/index#updating-cluster-cli)
 - [Disconnected Environment Updates](https://docs.redhat.com/en/documentation/openshift_container_platform/4.19/html-single/disconnected_environments/index#updating-disconnected-cluster)
-
-### **📋 Step 1: Pre-Upgrade Planning (Registry Node)**
 
 #### **🔍 Verify Current Cluster State**
 
@@ -131,11 +132,17 @@ cd ocp/downloads/ && ./install.sh
 # Inspect your imageset-config.yaml and the backup copy in /content.
 # They should be identical. This is the content that you will load into the registry
 # This will also create your custom catalog based on the operators in the imageset-config.yaml
-cd ../../oc-mirror
+cd ~/ocp/oc-mirror
 cat imageset-config.yaml
 
 # Run disk-to-mirror operation
 ./disk-to-mirror.sh
+
+# If you get an error on 
+[ERROR]  : [Executor] collection error: [GetReleaseReferenceImages] error list [APIRequestError: version 4.19.2 in channel stable-4.19: GraphDataInvalid: could not parse graph data content/working-dir/hold-release/cincinnati-graph-data/amd64-stable-4.19.json: invalid character '}' after top-level value]
+
+# Clear out the graph history
+rm -rf /home/ec2-user/ocp/oc-mirror/content/working-dir/hold-release/cincinnati-graph-data
 ```
 **📋 Verify the disk-to-mirror process was successful**
 
@@ -171,19 +178,7 @@ firefox https://$(hostname):8443
 
 
 
-> 📝 **Note:** Follow the same transfer process you used for initial installation
 
-#### **✅ Verify Content Update**
-
-**Confirm upgrade content is available:**
-```bash
-# Check content was updated successfully  
-ls -la content/working-dir/cluster-resources/
-
-# Verify new IDMS/ITMS were generated
-ls -la content/working-dir/cluster-resources/idms-*.yaml
-ls -la content/working-dir/cluster-resources/itms-*.yaml
-```
 
 ### **🔧 Step 3: Cluster Preparation**
 
@@ -208,15 +203,7 @@ oc image info --filter-by-os linux/amd64 \
 2. Enter: **Source Version**: `4.19.2`, **Target Version**: `4.19.3`
 3. Verify: Direct upgrade path is supported
 
-#### **⚙️ Apply Updated Mirror Configuration    BIG BOLD LETTERS, Should this be done before or after cluster upgrae?????????????????????**
 
-```bash
-# Apply updated IDMS/ITMS resources
-cd ~/ocp/oc-mirror
-
-# Apply all cluster resources
-oc apply -f content/working-dir/cluster-resources/
-```
 
 **Verify Resources:**
 ```bash
@@ -268,13 +255,8 @@ oc adm upgrade \
   --allow-explicit-upgrade \
   --force=true \
   --to-image="$FULL_IMAGE"
-```
 
-**Expected Output:**
-```
-Updating to 4.19.3
-
-Requested update to 4.19.3
+oc get clusterversion
 ```
 
 #### **🔍 Monitor Upgrade Progress**
@@ -304,7 +286,17 @@ watch -n 5 "oc describe clusterversion | grep '^ *Message:'"
 # Confirm new cluster version
 oc get clusterversion
 
-# Expected output shows 4.19.7
+# Expected output shows 4.19.3
+```
+
+#### **⚙️ Apply Updated Mirror Configuration. This will replace your operator hub catalogs
+
+```bash
+# Apply updated IDMS/ITMS resources
+cd ~/ocp/oc-mirror
+
+# Apply all cluster resources
+oc apply -f content/working-dir/cluster-resources/
 ```
 
 #### **▶️ Resume Machine Health Checks**
@@ -341,16 +333,6 @@ oc get catalogsource -n openshift-marketplace
 2. Verify: All operators show successful upgrade status
 3. Update: Any operators requiring manual updates
 
-#### **🛠️ Update Client Tools**
-
-```bash
-# Update local OC binaries to match cluster version
-cd ~/ocp
-./collect_ocp
-
-# Verify client version matches cluster
-oc version
-```
 
 ---
 
