@@ -17,6 +17,7 @@ Welcome to the OpenShift disconnected installation guide! This guide will take y
   - 🆙 New versions of OpenShift
   - ➖ Removing operators
   - 🖼️ Adding and removing additional images
+- ✅ Always create a backup of your imageset-config.yaml
 - ✅ Always use the latest oc-mirror v2 (regardless of the OpenShift Version)
 - ✅ Never run as ROOT user
 - ✅ Bastion host must be persistent (maintain `.cache` and `.history` directory)
@@ -362,16 +363,7 @@ oc adm release info $HOSTNAME:8443/openshift/release-images:4.19.2-x86_64 | grep
 # Inspect the release for the openshift-install client
 openshift-install version
 ```
-
-
-
-TODO, deploy cluster
-      ,Cluster upgrade
-      ,inspect the history
-      ,delete old content in the registry
-      ,draft the history and --since date. 
-
-
+TODO: inspect the history, draft the history and --since date. 
 
 ---
 

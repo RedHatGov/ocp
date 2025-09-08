@@ -11,11 +11,10 @@ This comprehensive guide walks you through safely removing old OpenShift images 
 ### **🔑 Key Assumptions**
 
 - ✅ Cluster should be **upgraded past** the versions you plan to delete
-- ✅ Must use original mirror workspace (`content/`) - contains essential Cincinnati graph data
 - ✅ Two-phase process: Generate plan → Review → Execute
 - ✅ No accidental deletions: Must explicitly review and approve
 - ✅ Preserves current versions: Only removes specified old versions
-- ✅ Rollback ready: Generated plans serve as audit trail
+
 
 ### **✅ What You'll Accomplish**
 
@@ -25,11 +24,6 @@ This comprehensive guide walks you through safely removing old OpenShift images 
 - 🗑️ **Execute controlled deletion** of old OpenShift versions
 - ✅ **Post-deletion verification** of registry and cluster health
 
-### **🛡️ Safety First**
-
-> ⚠️ **Critical:** Must use original mirror workspace (`content/`) - contains essential Cincinnati graph data for deletion operations.
-
-> 📝 **Important:** Consistent cache directory usage (same host recommended) for optimal results.
 
 ---
 
@@ -60,7 +54,6 @@ Verify the versions you plan to delete actually exist in your registry:
 # Check versions you plan to delete (adjust versions as needed)
 oc adm release info $(hostname):8443/openshift/release-images:4.19.2-x86_64 2>/dev/null && echo "✅ 4.19.2 present" || echo "❌ 4.19.2 not found"
 oc adm release info $(hostname):8443/openshift/release-images:4.19.3-x86_64 2>/dev/null && echo "✅ 4.19.3 present" || echo "❌ 4.19.3 not found"
-oc adm release info $(hostname):8443/openshift/release-images:4.19.6-x86_64 2>/dev/null && echo "✅ 4.19.6 present" || echo "❌ 4.19.6 not found"
 ```
 
 > 💡 **Tip:** Only verify the versions you plan to delete. You can also use your web browser to review the inventory.
@@ -83,7 +76,7 @@ delete:
     channels:
     - name: stable-4.19
       minVersion: 4.19.2
-      maxVersion: 4.19.6  # Only delete versions older than current 4.19.7
+      maxVersion: 4.19.2  # Only delete versions older than current 4.19.7
     graph: true
 ```
 
@@ -103,43 +96,6 @@ Run our standardized deletion plan generation script:
 ```bash
 # Generate deletion plan (SAFE - no actual deletions occur)
 ./delete-generate.sh
-```
-
-**Expected Output:**
-```
-🗑️ Generating deletion plan for old images...
-🎯 Target registry: $(hostname):8443
-📋 Config: imageset-delete.yaml
-📁 Workspace: file://content (original mirror workspace)
-⚠️  SAFE MODE: No deletions will be executed
-
-[INFO] 👋 Hello, welcome to oc-mirror
-[INFO] ⚙️ setting up the environment for you...
-[INFO] 🔀 workflow mode: diskToMirror / delete
-[INFO] 🕵 going to discover the necessary images...
-[INFO] 📄 Generating delete file...
-[INFO] content/working-dir/delete file created
-[INFO] 👋 Goodbye, thank you for using oc-mirror
-
-✅ Deletion plan generated successfully!
-📄 Plan saved to: content/working-dir/delete/delete-images.yaml
-🔍 IMPORTANT: Review the deletion plan before executing!
-```
-
-#### **✅ Verify Generation Success**
-
-Check that the deletion plan was created in your original workspace:
-
-```bash
-# Verify deletion plan was generated
-ls -la content/working-dir/delete/
-```
-
-**You should see:**
-```
-content/working-dir/delete/
-├── delete-images.yaml           # Main deletion plan (200KB+ file)
-└── delete-imageset-config.yaml  # Configuration used
 ```
 
 ### **👀 Step 3: Review Deletion Plan**
@@ -175,7 +131,7 @@ Look for entries like:
 
 ```bash
 # This should return NO results (4.19.7 should be preserved)
-grep -i "4.19.7\|4.19.8\|4.19.9\|4.19.10" content/working-dir/delete/delete-images.yaml || echo "✅ Current versions are preserved"
+grep -i "4.19.3\|4.19.8\|4.19.9\|4.19.10" content/working-dir/delete/delete-images.yaml || echo "✅ Current versions are preserved"
 ```
 
 #### **📊 Estimate Deletion Impact**
@@ -206,7 +162,7 @@ Use our standardized deletion execution script:
 
 ```bash
 # Execute deletion (requires confirmation)
-# Note: Create delete-execute.sh script or run manual command below
+./delete-execute.sh
 ```
 
 **Manual execution command:**
@@ -217,18 +173,6 @@ oc mirror delete \
   docker://$(hostname):8443 \
   --v2 \
   --cache-dir .cache
-```
-
-#### **🔍 Monitor Deletion Progress**
-
-**Expected Output:**
-```
-[INFO] 👋 Hello, welcome to oc-mirror
-[INFO] ⚙️ setting up the environment for you...
-[INFO] 🔀 workflow mode: delete
-[INFO] 🗑️ Deleting images from registry...
-[INFO] ✅ Successfully deleted X images
-[INFO] 👋 Goodbye, thank you for using oc-mirror
 ```
 
 ### **✅ Step 5: Post-Deletion Verification**
@@ -255,16 +199,7 @@ Test that your current cluster version is still available:
 
 ```bash
 # This should still work (current version preserved)
-oc adm release info $(hostname):8443/openshift/release-images:4.19.7-x86_64
-```
-
-**Expected Output:**
-```
-Name:      4.19.7
-Digest:    sha256:...
-Created:   ...
-OS/Arch:   linux/amd64
-Manifests: ...
+oc adm release info $(hostname):8443/openshift/release-images:4.19.3-x86_64
 ```
 
 #### **🔧 Verify Cluster Health**
@@ -277,97 +212,9 @@ oc get co
 # All operators should show AVAILABLE=True, PROGRESSING=False, DEGRADED=False
 ```
 
-#### **🌐 Test Registry Functionality**
 
-Verify the registry is still functioning properly:
 
-```bash
-# Test registry connectivity
-curl -k https://$(hostname):8443/v2/
-# Should return: {}%
-```
 
-#### **💾 Check Storage Reclamation**
-
-Optionally check storage space reclaimed:
-
-```bash
-# Check available space (should show reclaimed storage)
-df -h /opt/quay/
-```
-
----
-
-## 🔧 Troubleshooting
-
-### **❌ Common Issues**
-
-#### **1. NoGraphData Error During Plan Generation**
-
-**Error:** `NoGraphData: No graph data found on disk`
-
-**Root Cause:** Delete operations require Cincinnati graph data from the original mirror workspace.
-
-**Solution:**
-```bash
-# ✅ CORRECT - use original workspace with metadata
-oc mirror delete --workspace file://content ...
-
-# ❌ WRONG - separate workspace lacks graph data  
-oc mirror delete --workspace file://delete-workspace ...
-```
-
-#### **2. Permission Denied During Deletion**
-
-**Error:** `403 Forbidden` or permission denied errors
-
-**Solution:**
-```bash
-# Verify registry authentication
-podman login $(hostname):8443
-
-# Check auth file
-cat ~/.config/containers/auth.json
-
-# Ensure your account has delete permissions
-```
-
-#### **3. Generated Plan Is Empty**
-
-**Error:** No images found for deletion
-
-**Possible Causes:**
-- Target versions don't exist in registry
-- Configuration file has incorrect version ranges
-- Registry path issues
-
-**Solution:**
-```bash
-# Verify images exist before deletion
-oc adm release info $(hostname):8443/openshift/release-images:4.19.2-x86_64
-
-# Check configuration file
-cat imageset-delete.yaml
-```
-
-### **🔍 Diagnostic Commands**
-
-```bash
-# Check oc-mirror version
-oc-mirror --v2 version
-
-# List deletion plan contents
-find content/working-dir/delete/ -name "*.yaml" -exec ls -la {} \;
-
-# Verify registry content
-podman search $(hostname):8443/ 2>/dev/null | head -10
-
-# Test registry authentication
-podman login --get-login $(hostname):8443
-
-# Check workspace has graph data (critical for delete operations)
-ls -la content/working-dir/hold-release/
-```
 
 ### **🚨 Recovery Procedures**
 
@@ -417,25 +264,3 @@ for version in 4.19.2 4.19.3 4.19.6; do
   oc adm release info $(hostname):8443/openshift/release-images:${version}-x86_64 2>/dev/null || echo "✅ ${version} deleted"
 done
 ```
-
-### **🎯 Why Use This Process?**
-
-- ✅ **Built-in safety checks** prevent common mistakes
-- ✅ **Two-phase approach** for maximum safety
-- ✅ **Comprehensive guidance** throughout the process
-- ✅ **Automatic verification** suggestions post-execution
-- ✅ **Clear rollback procedures** if issues arise
-
-```bash
-echo "✅ Image deletion completed safely!"
-```
-
----
-
-> ⚠️ **Remember:** Always test deletion operations in non-production environments first and ensure you have proper backups and rollback procedures in place.
-
-> ✅ **Safety by Design:** This two-phase deletion process provides excellent safety through mandatory review steps.
-
-**📖 References:**
-- [OpenShift Image Deletion Documentation](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-disconnected.html)
-- [oc-mirror v2 Documentation](https://docs.openshift.com/container-platform/latest/installing/disconnected_install/installing-mirroring-creating-registry.html)
