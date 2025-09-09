@@ -5,7 +5,17 @@
 Welcome to the OpenShift disconnected installation guide! This guide will take you from zero to successfully running OpenShift in disconnected environments using a two-host architecture with oc-mirror v2.
 
 ---
+### **📝  CRITICAL ASSUMPTIONS:
 
+This guide assumes that the customer will use a single imageset-config.yaml file for ALL oc-mirror tasks/runs. This includes doing the initial base openshift image set pull as well as subsequent image pulls for a single (or multiple) operators or openshift upgrades.  
+
+Retention of the .cache directory is CRITICAL to these subsequent pulls. Keeping the .cache and using the same imageset-config.yaml will ensure that content is not pulled again and again from the internet. 
+
+Retention of the working-dir is CRITICAL to all operations. It contains all state infomation of all oc-mirror --v2 operations. This state information will REDUCE the size of .tar files and allow for the ability to re-tar content based on historical dates of collection.  
+
+- For example, initial Openshift pull is 20GB, additional image pull of 10 Operators would be ~5GB and will NOT contain the initial openshift pull. Keeping the working-dir directory will ensure this "history" of previous image pulls will be consecutive on subsequent runs and you will not have to transfer the same images multiple times.
+
+  
 ## 📋 Requirements and Assumptions
 
 ### **🔑 Key Assumptions**
