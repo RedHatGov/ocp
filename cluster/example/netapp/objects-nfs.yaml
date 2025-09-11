@@ -4,12 +4,12 @@ metadata:
   name: trident
 spec:
   IPv6: false
-  autosupportImage: registry.en-lab.local:8443/netapp/trident-autosupport@sha256:21b3afbebfac3cc28c4eb319c2d385187bd8ebb728d8cfd82dbc437cc9b83b33
+  autosupportImage: registry.local:8443/netapp/trident-autosupport@sha256:21b3afbebfac3cc28c4eb319c2d385187bd8ebb728d8cfd82dbc437cc9b83b33
   debug: true
   imageRegistry: registry.en-lab.local:8443/openshift4
   namespace: trident
   silenceAutosupport: false
-  tridentImage: registry.en-lab.local:8443/netapp/trident@sha256:3856d7c46ea9dd59a0ab4886943c7215eccad12d364d5d19618bf41225b4dc1e
+  tridentImage: registry.local:8443/netapp/trident@sha256:3856d7c46ea9dd59a0ab4886943c7215eccad12d364d5d19618bf41225b4dc1e
 ---
 apiVersion: v1
 kind: Secret
@@ -18,7 +18,7 @@ metadata:
   namespace: trident
 type: Opaque
 data:
-  password: IVFBWlNFJDFxYXpzZTQ=
+  password: IVFBWlNFJDFxYXpz
   username: dnNhZG1pbg==
 ---
 apiVersion: trident.netapp.io/v1
@@ -29,8 +29,8 @@ metadata:
 spec:
   version: 1
   storageDriverName: ontap-nas
-  managementLIF: 10.228.103.204
-  dataLIF: 10.228.103.201
+  managementLIF: 192.228.103.204
+  dataLIF: 192.228.103.201
   svm: Data-NFS-SVM-OpenShift
   autoExportPolicy: true
   credentials:

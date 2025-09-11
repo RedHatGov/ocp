@@ -7,7 +7,7 @@ spec:
   version: 1
   backendName: backend-tbc-ontap-nvme
   storageDriverName: ontap-san
-  managementLIF: 10.228.103.204
+  managementLIF: 192.228.103.204
   svm: Data-NFS-SVM-OpenShift
   sanType: nvme
   credentials:
