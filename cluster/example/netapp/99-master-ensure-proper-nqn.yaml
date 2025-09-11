@@ -1,0 +1,25 @@
+kind: MachineConfig
+apiVersion: machineconfiguration.openshift.io/v1
+metadata:
+  name: 99-master-ensure-proper-nqn
+  labels:
+    machineconfiguration.openshift.io/role: master 
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    systemd:
+      units:
+        - contents: |
+            [Unit]
+            Description=ensure proper NQN
+            Before=network.target
+ 
+            [Service]
+            ExecStart=/usr/bin/sh -c 'HOSTNAME=$(hostname); echo "nqn.2024-05.io.openshift:$HOSTNAME" > /etc/nvme/hostnqn'
+            RemainAfterExit=yes
+ 
+            [Install]
+            WantedBy=multi-user.target
+          name: ensure-proper-nqn.service
+          enabled: true

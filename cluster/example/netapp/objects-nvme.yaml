@@ -1,0 +1,38 @@
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: backend-tbc-ontap-nvme
+  namespace: trident
+spec:
+  version: 1
+  backendName: backend-tbc-ontap-nvme
+  storageDriverName: ontap-san
+  managementLIF: 10.228.103.204
+  svm: Data-NFS-SVM-OpenShift
+  sanType: nvme
+  credentials:
+    name: optixsvm-secret 
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: basic-netapp-file-nvme      # change the name if you want to keep the old SC
+provisioner: csi.trident.netapp.io
+parameters:
+  backendType: "ontap-san"
+  storagePools: "backend-tbc-ontap-nvme:.*"
+  fsType: ext4
+mountOptions:
+  - discard 
+allowVolumeExpansion: true
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: StorageProfile
+metadata:
+  name: basic-netapp-file-nvme
+spec:
+  claimPropertySets:
+  - accessModes:
+    - ReadWriteMany
+    volumeMode: Block
+  cloneStrategy: csi-clone

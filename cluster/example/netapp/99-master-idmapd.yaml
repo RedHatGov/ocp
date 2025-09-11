@@ -1,0 +1,18 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  name: 99-master-idmapd
+  labels:
+    machineconfiguration.openshift.io/role: master
+spec:
+  config:
+    ignition:
+      version: 3.4.0            # current on OCP 4.19
+    storage:
+      files:
+      - path: /etc/idmapd.conf
+        mode: 0644
+        overwrite: true
+        contents:
+          source: "data:;base64,W0dlbmVyYWxdCkRvbWFpbiA9IGVuLXByb2QubG9jYWwK"
+          verification: {}
