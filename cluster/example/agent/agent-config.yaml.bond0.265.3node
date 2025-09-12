@@ -2,7 +2,7 @@ apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: ocpbm
-rendezvousIP: 10.2.65.38
+rendezvousIP: 192.2.65.38
 hosts:
   - hostname: master-0
     role: master
@@ -23,7 +23,7 @@ hosts:
             enabled: true
             dhcp: false
             address:
-              - ip: 10.2.65.38
+              - ip: 192.2.65.38
                 prefix-length: 24
           ipv6:
             enabled: false
@@ -51,7 +51,7 @@ hosts:
       routes:
         config:
           - destination: 0.0.0.0/0
-            next-hop-address: 10.2.65.1
+            next-hop-address: 192.2.65.1
             next-hop-interface: bond0.265
             table-id: 254
   - hostname: master-1
@@ -73,7 +73,7 @@ hosts:
             enabled: true
             dhcp: false
             address:
-              - ip: 10.2.65.37
+              - ip: 192.2.65.37
                 prefix-length: 24
           ipv6:
             enabled: false
@@ -101,7 +101,7 @@ hosts:
       routes:
         config:
           - destination: 0.0.0.0/0
-            next-hop-address: 10.2.65.1
+            next-hop-address: 192.2.65.1
             next-hop-interface: bond0.265
             table-id: 254
   - hostname: master-2
@@ -123,7 +123,7 @@ hosts:
             enabled: true
             dhcp: false
             address:
-              - ip: 10.2.65.36
+              - ip: 192.2.65.36
                 prefix-length: 24
           ipv6:
             enabled: false
@@ -151,6 +151,6 @@ hosts:
       routes:
         config:
           - destination: 0.0.0.0/0
-            next-hop-address: 10.2.65.1
+            next-hop-address: 192.2.65.1
             next-hop-interface: bond0.265
             table-id: 254

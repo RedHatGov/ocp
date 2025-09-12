@@ -91,6 +91,9 @@ vi ~/.config/containers/auth.json
 # Edit imageset-config.yaml for your requirements
 cd oc-mirror
 
+# View your imageset-config.yaml to see what content will be mirrored
+cat imageset-config.yaml
+
 # Run mirror-to-disk operation
 ./mirror-to-disk.sh
 
@@ -100,6 +103,8 @@ ls -la content/
 # Create a backup copy of your imageset-config.yaml with the YYYY-MM-DD in content/ 
 cp imageset-config.yaml content/imageset-config-$(date +%F).yaml
 ```
+> 📝 **Note:** Additional example imageset-config.yaml files exist in the example directory in oc-mirror. Explore them if you would like to add additional operators to your deployment.
+
 
 ### **Step 3: Transfer to Registry Host**
 

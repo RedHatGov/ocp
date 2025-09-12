@@ -17,21 +17,21 @@ networking:
   - cidr: 10.128.0.0/14
     hostPrefix: 23
   machineNetwork:
-  - cidr: 10.2.0.0/16
+  - cidr: 192.2.0.0/16
   networkType: OVNKubernetes
   serviceNetwork:
   - 172.30.0.0/16
 platform:
   baremetal:
-    apiVIP: "10.2.65.33"
-    ingressVIP: "10.2.65.34"
+    apiVIP: "192.2.65.33"
+    ingressVIP: "192.2.65.34"
 pullSecret: '{"auths": {"bastion:8443": { "auth": "YWRtaW46cGFzc3dvcmQ=","email": "admin@kmod.io"}}}'
 imageContentSources:
 - mirrors:
-  - bastion.ocpbm.ecore.af.mil:8443/ocp415/openshift/release
+  - registry:8443/openshift/release
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 - mirrors:
-  - bastion.ocpbm.ecore.af.mil:8443/ocp415/openshift/release-images
+  - registry:8443/openshift/release-images
   source: quay.io/openshift-release-dev/ocp-release
 additionalTrustBundle: |
   -----BEGIN CERTIFICATE-----

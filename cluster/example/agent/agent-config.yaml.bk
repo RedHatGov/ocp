@@ -2,7 +2,7 @@ apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
   name: ocpbm
-rendezvousIP: 10.2.65.33
+rendezvousIP: 192.2.65.33
 hosts:
   - hostname: master-0
     role: master
@@ -27,7 +27,7 @@ hosts:
             enabled: true
             dhcp: false
             address:
-              - ip: 10.2.65.33
+              - ip: 192.2.65.33
                 prefix-length: 24
       dns-resolver:
         config:
@@ -37,6 +37,6 @@ hosts:
       routes:
         config:
           - destination: 0.0.0.0/0
-            next-hop-address: 10.2.65.1
+            next-hop-address: 192.2.65.1
             next-hop-interface: ens7f1
             table-id: 254
