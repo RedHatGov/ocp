@@ -1,0 +1,42 @@
+apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: ocpbm
+rendezvousIP: 10.2.65.33
+hosts:
+  - hostname: master-0
+    role: master
+    interfaces:
+      - name: ens7f0 # Connection 8
+        macAddress: 3c:fd:fe:d7:ab:90
+      - name: ens7f1 # Connection 9
+        macAddress: 3c:fd:fe:d7:ab:91
+    networkConfig:
+      interfaces:
+        - name: ens7f0
+          type: ethernet
+          state: down
+          mac-address: 3c:fd:fe:d7:ab:90
+          ipv4:
+            enabled: false
+        - name: ens7f1
+          type: ethernet
+          state: up
+          mac-address: 3c:fd:fe:d7:ab:91
+          ipv4:
+            enabled: true
+            dhcp: false
+            address:
+              - ip: 10.2.65.33
+                prefix-length: 24
+      dns-resolver:
+        config:
+          server:
+            - 10.0.233.10
+            - 10.0.233.11
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 10.2.65.1
+            next-hop-interface: ens7f1
+            table-id: 254

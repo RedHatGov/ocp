@@ -1,0 +1,156 @@
+apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: ocpbm
+rendezvousIP: 10.2.65.38
+hosts:
+  - hostname: master-0
+    role: master
+    interfaces:
+      - name: ens7f0 # Connection 8
+        macAddress: 3c:fd:fe:d7:ab:90
+      - name: ens7f1 # Connection 9
+        macAddress: 3c:fd:fe:d7:ab:91
+    networkConfig:
+      interfaces:
+        - name: bond0.265
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 265
+          ipv4:
+            enabled: true
+            dhcp: false
+            address:
+              - ip: 10.2.65.38
+                prefix-length: 24
+          ipv6:
+            enabled: false
+        - name: bond0
+          type: bond
+          state: up
+          mac-address: 3c:fd:fe:d7:ab:90
+          ipv4:
+            enabled: false
+          ipv6:
+            enabled: false
+          link-aggregation:
+            mode: active-backup
+            options:
+              miimon: "150"
+              primary: ens7f1
+            port:
+              - ens7f0
+              - ens7f1
+      dns-resolver:
+        config:
+          server:
+            - 10.0.233.10
+            - 10.0.233.11
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 10.2.65.1
+            next-hop-interface: bond0.265
+            table-id: 254
+  - hostname: master-1
+    role: master
+    interfaces:
+      - name: ens7f0 # Connection 8
+        macAddress: 3c:fd:fe:d7:ab:a0
+      - name: ens7f1 # Connection 9
+        macAddress: 3c:fd:fe:d7:ab:a1
+    networkConfig:
+      interfaces:
+        - name: bond0.265
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 265
+          ipv4:
+            enabled: true
+            dhcp: false
+            address:
+              - ip: 10.2.65.37
+                prefix-length: 24
+          ipv6:
+            enabled: false
+        - name: bond0
+          type: bond
+          state: up
+          mac-address: 3c:fd:fe:d7:ab:a0
+          ipv4:
+            enabled: false
+          ipv6:
+            enabled: false
+          link-aggregation:
+            mode: active-backup
+            options:
+              miimon: "150"
+              primary: ens7f1
+            port:
+              - ens7f0
+              - ens7f1
+      dns-resolver:
+        config:
+          server:
+            - 10.0.233.10
+            - 10.0.233.11
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 10.2.65.1
+            next-hop-interface: bond0.265
+            table-id: 254
+  - hostname: master-2
+    role: master
+    interfaces:
+      - name: ens7f0 # Connection 8
+        macAddress: 3c:fd:fe:d2:5e:c0
+      - name: ens7f1 # Connection 9
+        macAddress: 3c:fd:fe:d2:5e:c1
+    networkConfig:
+      interfaces:
+        - name: bond0.265
+          type: vlan
+          state: up
+          vlan:
+            base-iface: bond0
+            id: 265
+          ipv4:
+            enabled: true
+            dhcp: false
+            address:
+              - ip: 10.2.65.36
+                prefix-length: 24
+          ipv6:
+            enabled: false
+        - name: bond0
+          type: bond
+          state: up
+          mac-address: 3c:fd:fe:d2:5e:c0
+          ipv4:
+            enabled: false
+          ipv6:
+            enabled: false
+          link-aggregation:
+            mode: active-backup
+            options:
+              miimon: "150"
+              primary: ens7f1
+            port:
+              - ens7f0
+              - ens7f1
+      dns-resolver:
+        config:
+          server:
+            - 10.0.233.10
+            - 10.0.233.11
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: 10.2.65.1
+            next-hop-interface: bond0.265
+            table-id: 254
