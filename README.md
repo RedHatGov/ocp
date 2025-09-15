@@ -120,9 +120,9 @@ rsync -av --progress -e "ssh -i ~/.ssh/aws.pem" \
   ./ocp/ \
   ec2-user@registry.sandbox3296.opentlc.com:~/ocp/
 ```
-> 📝 **Critical:** You do not need to transfer the .cache to your disconnected host
+> 📝 **Critical:** You DO NOT transfer the .cache to your disconnected host
 
-> 📝 **Critical:** DO NOT overwrite your working-dir on your disconnected host
+> 📝 **Critical:** You DO NOT transfer the working-dir or ever overwrite your working-dir on your disconnected host
 
 ### **Step 4: Registry Host Setup**
 
