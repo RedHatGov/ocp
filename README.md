@@ -369,14 +369,6 @@ oc patch OperatorHub cluster --type json \
 
 ### 📖 **Step 7: [OpenShift Cluster Upgrade](docs/cluster-upgrade.md)**
 
-**📋 Validate your openshift-install client**
-
-```bash
-# Inspect the openshift-release image
-oc adm release info $HOSTNAME:8443/openshift/release-images:4.19.2-x86_64 | grep release
-
-# Inspect the release for the openshift-install client
-openshift-install version
 ```
 TODO: inspect the history, draft the history and --since date. 
 
