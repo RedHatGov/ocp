@@ -49,6 +49,23 @@ Each scenario directory contains:
 For the complete repository with utility configurations, networking examples, and oc-mirror ImageSet configurations, visit:
 **https://github.com/bstrauss84/openshift-install-configs**
 
+## 🔄 **Keeping Content Updated**
+
+This directory contains a **vendor copy** of installation configurations from Bill Strauss's repository. To update with the latest configurations:
+
+### **Manual Update Process:**
+1. **Check for updates:** Visit [bstrauss84/openshift-install-configs](https://github.com/bstrauss84/openshift-install-configs)
+2. **Review changes:** Compare with current content in this directory
+3. **Selective updates:** Copy relevant new configurations or updates
+4. **Test configurations:** Validate any new configurations in test environments
+5. **Commit updates:** Document which configurations were updated and why
+
+### **Update History:**
+- **Initial import:** All installation-configs from bstrauss84/openshift-install-configs (commit: `2d332de`)
+- **Future updates:** Document major updates here
+
+> 💡 **Tip:** We use a vendor/copy approach rather than git submodules or subtrees to maintain full control over configuration stability and to integrate seamlessly with our repository structure.
+
 ## ⚠️ **Important Notes**
 
 - Always refer to official OpenShift documentation for the latest requirements
